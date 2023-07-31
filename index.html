@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebSocket Client</title>
+</head>
+<body>
+  <button id="toggleWebSocketBtn" onclick="toggleWebSocket()">Toggle WebSocket</button>
+  <div>
+    <button onclick="deleteMessages()">Delete All Messages</button>
+  </div>
+  <div id="messages"></div>
+
+  <script>
+    let websocket = null;
+    const messagesDiv = document.getElementById('messages');
+    let isWebSocketOpen = false;
+
+    function appendMessage(message) {
+      const p = document.createElement('p');
+      const deleteButton = document.createElement('button');
+      deleteButton.textContent = 'Reject';
+      deleteButton.onclick = function() {
+        p.remove();
+      };
+
+      p.textContent = message;
+      p.prepend(deleteButton);
+      messagesDiv.appendChild(p);
+    }
+
+    function toggleWebSocket() {
+      if (isWebSocketOpen) {
+        stopWebSocket();
+      } else {
+        startWebSocket();
+      }
+    }
+
+    async function startWebSocket() {
+      const uri = 'ws://127.0.0.1:8000/ws';
+      websocket = new WebSocket(uri);
+
+      //   websocket.onopen = () => {
+      //     appendMessage('WebSocket connected.');
+      //   };
+
+      websocket.onmessage = (event) => {
+        const message = event.data;
+        appendMessage(`Received: ${message}`);
+      };
+
+      websocket.onerror = (event) => {
+        appendMessage(`WebSocket error: ${event.data}`);
+      };
+
+      isWebSocketOpen = true;
+      document.getElementById('toggleWebSocketBtn').textContent = 'Stop WebSocket';
+    }
+
+    function stopWebSocket() {
+      if (websocket) {
+        websocket.close();
+        appendMessage('WebSocket closed.');
+      }
+
+      isWebSocketOpen = false;
+      document.getElementById('toggleWebSocketBtn').textContent = 'Start WebSocket';
+    }
+
+    function sendMessage() {
+      const message = 'Hello, all servers!';
+      websocket.send(message);
+      appendMessage(`Sent: ${message}`);
+    }
+
+    function deleteMessages() {
+      messagesDiv.innerHTML = '';
+    }
+  </script>
+</body>
+</html> 

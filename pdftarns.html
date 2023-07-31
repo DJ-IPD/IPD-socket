@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebSocket PDF Display</title>
+</head>
+<body>
+  <div id="pdfList"></div>
+
+  <script>
+    const pdfList = document.getElementById("pdfList");
+    const websocket = new WebSocket("ws://127.0.0.1:8000/ws");
+    let pdfs = {};
+
+    websocket.onmessage = function(event) {
+      const pdfData = event.data;
+      const pdfBlob = new Blob([pdfData], { type: "application/pdf" });
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const pdfId = `pdf_${Date.now()}`;
+      const fileName = `received_pdf_${Object.keys(pdfs).length + 1}.pdf`;
+
+      // Create a container for the PDF with its buttons
+      const pdfContainer = document.createElement("div");
+      const pdfNameElement = document.createElement("p");
+      pdfNameElement.textContent = fileName;
+
+      const downloadBtn = document.createElement("button");
+      downloadBtn.textContent = "Download";
+      downloadBtn.onclick = function() {
+        downloadPdf(pdfBlob, fileName);
+      };
+
+      const removeBtn = document.createElement("button");
+      removeBtn.textContent = "Remove";
+      removeBtn.onclick = function() {
+        removePdf(pdfContainer, pdfId);
+      };
+
+      pdfContainer.appendChild(pdfNameElement);
+      pdfContainer.appendChild(downloadBtn);
+      pdfContainer.appendChild(removeBtn);
+
+      // Insert the PDF container at the beginning of the pdfList
+      pdfList.insertBefore(pdfContainer, pdfList.firstChild);
+
+      // Store the PDF data in the dictionary
+      pdfs[pdfId] = pdfData;
+    };
+
+    function downloadPdf(pdfBlob, fileName) {
+      // Trigger the download
+      const downloadLink = document.createElement("a");
+      downloadLink.href = URL.createObjectURL(pdfBlob);
+      downloadLink.download = fileName;
+      downloadLink.click();
+
+      // Clean up the URL object to release resources
+      URL.revokeObjectURL(downloadLink.href);
+    }
+
+    function removePdf(pdfContainer, pdfId) {
+      pdfContainer.remove();
+      // Remove the corresponding PDF entry from the dictionary
+      delete pdfs[pdfId];
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebSocket Image Display</title>
+</head>
+<body>
+  <div id="imageContainer">
+    <img id="displayedImage" src="" alt="Received Image" style="width: 300px; height: 200px;">
+  </div>
+
+  <script>
+    const imageElement = document.getElementById("displayedImage");
+    const websocket = new WebSocket("ws://127.0.0.1:8000/ws");
+
+    websocket.onmessage = function(event) {
+      const imageUrl = event.data;
+      imageElement.src = imageUrl;
+    };
+  </script>
+</body>
+</html>
